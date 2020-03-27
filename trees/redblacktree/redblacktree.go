@@ -105,12 +105,12 @@ func (tree *Tree) Put(key interface{}, value interface{}) {
 // Get searches the node in the tree by key and returns its value or nil if key is not found in tree.
 // Second return parameter is true if key was found, otherwise false.
 // Key should adhere to the comparator's type assertion, otherwise method panics.
-func (tree *Tree) Get(key interface{}) (value interface{}, found bool) {
+func (tree *Tree) Get(key interface{}) (value interface{}, node0 *Node, found bool) {
 	node := tree.lookup(key)
 	if node != nil {
-		return node.Value, true
+		return node.Value, node, true
 	}
-	return nil, false
+	return nil, nil, false
 }
 
 // Remove remove the node from the tree by key.
@@ -316,6 +316,28 @@ func (tree *Tree) lookup(key interface{}) *Node {
 		}
 	}
 	return nil
+}
+
+func (tree *Tree) LookupWithPath(key interface{}) ([]interface{}, []byte) {
+	ret := make([]interface{}, 0)
+	ops := make([]byte, 0)
+	node := tree.Root
+	for node != nil {
+		compare := tree.Comparator(key, node.Key)
+		switch {
+		case compare == 0:
+			return ret, ops
+		case compare < 0:
+			ret = append(ret, node.Key)
+			ops = append(ops, 'L')
+			node = node.Left
+		case compare > 0:
+			ret = append(ret, node.Key)
+			ops = append(ops, 'R')
+			node = node.Right
+		}
+	}
+	return ret, ops
 }
 
 func (node *Node) grandparent() *Node {
