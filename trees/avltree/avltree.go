@@ -56,6 +56,28 @@ func (t *Tree) Put(key interface{}, value interface{}) {
 	t.put(key, value, nil, &t.Root)
 }
 
+func (tree *Tree) LookupWithPath(key interface{}) ([]interface{}, []byte) {
+	ret := make([]interface{}, 0)
+	ops := make([]byte, 0)
+	node := tree.Root
+	for node != nil {
+		compare := tree.Comparator(key, node.Key)
+		switch {
+		case compare == 0:
+			return ret, ops
+		case compare < 0:
+			ret = append(ret, node.Key)
+			ops = append(ops, 'L')
+			node = node.Children[0]
+		case compare > 0:
+			ret = append(ret, node.Key)
+			ops = append(ops, 'R')
+			node = node.Children[1]
+		}
+	}
+	return ret, ops
+}
+
 // Get searches the node in the tree by key and returns its value or nil if key is not found in tree.
 // Second return parameter is true if key was found, otherwise false.
 // Key should adhere to the comparator's type assertion, otherwise method panics.
